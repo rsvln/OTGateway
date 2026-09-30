@@ -220,4 +220,6 @@ const char S_USE[]                                  PROGMEM = "use";
 const char S_USE_DHCP[]                             PROGMEM = "useDhcp";
 const char S_USER[]                                 PROGMEM = "user";
 const char S_VALUE[]                                PROGMEM = "value";
+const char S_URL[]                                  PROGMEM = "url";
+const char S_JSON_PATH[]                            PROGMEM = "jsonPath";
 const char S_VERSION[]                              PROGMEM = "version";

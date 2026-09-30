@@ -250,6 +250,7 @@
         "dallasTemp": "DALLAS sensor",
         "bluetooth": "BLE sensor",
         "apiEndpoint": "API endpoint",
+        "apiRequest": "API request",
         "heatSetpointTemp": "Heating, setpoint temp",
         "manual": "Manual via MQTT/API",
         "notConfigured": "Not configured"
@@ -259,6 +260,12 @@
         "title": "Sensor address",
         "note": "For auto detection of DALLAS sensors leave it at default, for BLE devices need a MAC address"
       },
+      "url": "Request URL",
+      "jsonPath": {
+        "title": "JSON path",
+        "note": "Dot-separated keys, e.g. StatusSNS.SHT4X.Temperature. Leave empty if the response is a plain number."
+      },
+      "interval": "Polling interval (seconds)",
       "correction": {
         "desc": "Correction of values",
         "offset": "Compensation (offset)",

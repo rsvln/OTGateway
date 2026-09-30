@@ -1837,6 +1837,10 @@ void sensorSettingsToJson(const uint8_t sensorId, const Sensors::Settings& src, 
   dst[FPSTR(S_FACTOR)] = roundf(src.factor, 3);
   dst[FPSTR(S_FILTERING)] = src.filtering;
   dst[FPSTR(S_FILTERING_FACTOR)] = roundf(src.filteringFactor, 3);
+
+  dst[FPSTR(S_URL)] = src.url;
+  dst[FPSTR(S_JSON_PATH)] = src.jsonPath;
+  dst[FPSTR(S_INTERVAL)] = src.interval;
 }
 
 bool jsonToSensorSettings(const uint8_t sensorId, const JsonVariantConst src, Sensors::Settings& dst) {
@@ -1941,6 +1945,7 @@ bool jsonToSensorSettings(const uint8_t sensorId, const JsonVariantConst src, Se
       case static_cast<uint8_t>(Sensors::Type::DALLAS_TEMP):
       case static_cast<uint8_t>(Sensors::Type::BLUETOOTH):
       case static_cast<uint8_t>(Sensors::Type::API_ENDPOINT):
+      case static_cast<uint8_t>(Sensors::Type::API_REQUEST):
       case static_cast<uint8_t>(Sensors::Type::HEATING_SETPOINT_TEMP):
       case static_cast<uint8_t>(Sensors::Type::MANUAL):
       case static_cast<uint8_t>(Sensors::Type::NOT_CONFIGURED):
@@ -2073,6 +2078,36 @@ bool jsonToSensorSettings(const uint8_t sensorId, const JsonVariantConst src, Se
 
     if (value > 0 && value <= 1 && fabsf(value - dst.filteringFactor) > 0.0001f) {
       dst.filteringFactor = roundf(value, 3);
+      changed = true;
+    }
+  }
+
+  // url
+  if (!src[FPSTR(S_URL)].isNull()) {
+    String value = src[FPSTR(S_URL)].as<String>();
+
+    if (value.length() < sizeof(dst.url) && !value.equals(dst.url)) {
+      strcpy(dst.url, value.c_str());
+      changed = true;
+    }
+  }
+
+  // json path
+  if (!src[FPSTR(S_JSON_PATH)].isNull()) {
+    String value = src[FPSTR(S_JSON_PATH)].as<String>();
+
+    if (value.length() < sizeof(dst.jsonPath) && !value.equals(dst.jsonPath)) {
+      strcpy(dst.jsonPath, value.c_str());
+      changed = true;
+    }
+  }
+
+  // interval
+  if (!src[FPSTR(S_INTERVAL)].isNull()) {
+    unsigned short value = src[FPSTR(S_INTERVAL)].as<unsigned short>();
+
+    if (value >= 5 && value <= 3600 && value != dst.interval) {
+      dst.interval = value;
       changed = true;
     }
   }

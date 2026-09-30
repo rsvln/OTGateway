@@ -2,6 +2,12 @@
 #include <OneWire.h>
 #include <DallasTemperature.h>
 
+#ifdef ARDUINO_ARCH_ESP32
+  #include <WiFi.h>
+#else
+  #include <ESP8266WiFi.h>
+#endif
+
 #if USE_BLE
   #include <NimBLEDevice.h>
 #endif
@@ -80,6 +86,7 @@ protected:
   std::unordered_map<uint8_t, unsigned long> dallasSearchTime;
   std::unordered_map<uint8_t, bool> dallasPolling;
   std::unordered_map<uint8_t, unsigned long> dallasLastPollingTime;
+  std::unordered_map<uint8_t, unsigned long> apiRequestLastPollTime;
   #if USE_BLE
   std::unordered_map<uint8_t, NimBLEClient*> bleClients;
   std::unordered_map<uint8_t, bool> bleSubscribed;
@@ -139,6 +146,9 @@ protected:
 
       this->globalLastPollingTime = millis();
     }
+
+    pollingApiRequestSensors();
+    this->yield();
 
     updateConnectionStatus();
     updateMasterValues();
@@ -441,6 +451,176 @@ protected:
 
       // set temp
       Sensors::setValueById(sensorId, rawTemp, Sensors::ValueType::TEMPERATURE, true, true);
+    }
+  }
+
+  static bool getValueByJsonPath(const JsonDocument& doc, const char* path, float& out) {
+    char buf[65];
+    strncpy(buf, path, sizeof(buf) - 1);
+    buf[sizeof(buf) - 1] = 0;
+
+    // empty path: whole response is a number
+    if (!buf[0]) {
+      if (doc.is<float>()) {
+        out = doc.as<float>();
+        return true;
+      }
+
+      return false;
+    }
+
+    JsonVariantConst node;
+    if (doc.is<JsonObjectConst>()) {
+      node = doc.as<JsonObjectConst>();
+
+    } else if (doc.is<JsonArrayConst>()) {
+      node = doc.as<JsonArrayConst>();
+
+    } else {
+      return false;
+    }
+
+    char* saveptr = nullptr;
+    char* tok = strtok_r(buf, ".", &saveptr);
+    while (tok != nullptr && !node.isNull()) {
+      if (node.is<JsonObjectConst>()) {
+        node = node[tok];
+
+      } else if (node.is<JsonArrayConst>()) {
+        node = node[strtol(tok, nullptr, 10)];
+
+      } else {
+        return false;
+      }
+
+      tok = strtok_r(nullptr, ".", &saveptr);
+    }
+
+    if (node.is<float>()) {
+      out = node.as<float>();
+      return true;
+    }
+
+    return false;
+  }
+
+  static bool parseUrl(const char* url, String& host, String& path, uint16_t& port) {
+    String value = url;
+    value.trim();
+
+    // no TLS support
+    if (value.startsWith(F("https://"))) {
+      return false;
+    }
+
+    if (value.startsWith(F("http://"))) {
+      value.remove(0, 7);
+    }
+
+    int slashIdx = value.indexOf('/');
+    if (slashIdx >= 0) {
+      path = value.substring(slashIdx);
+      host = value.substring(0, slashIdx);
+
+    } else {
+      path = "/";
+      host = value;
+    }
+
+    port = 80;
+    int colonIdx = host.indexOf(':');
+    if (colonIdx >= 0) {
+      port = host.substring(colonIdx + 1).toInt();
+      host = host.substring(0, colonIdx);
+    }
+
+    return host.length() > 0;
+  }
+
+  void pollingApiRequestSensors() {
+    for (uint8_t sensorId = 0; sensorId <= Sensors::getMaxSensorId(); sensorId++) {
+      auto& sSensor = Sensors::settings[sensorId];
+      auto& rSensor = Sensors::results[sensorId];
+
+      if (!sSensor.enabled || sSensor.type != Sensors::Type::API_REQUEST || sSensor.purpose == Sensors::Purpose::NOT_CONFIGURED) {
+        continue;
+      }
+
+      if (!strlen(sSensor.url)) {
+        continue;
+      }
+
+      if (!vars.network.connected) {
+        if (rSensor.connected) {
+          Sensors::setConnectionStatusById(sensorId, false, false);
+        }
+
+        continue;
+      }
+
+      unsigned long intervalMs = (sSensor.interval > 0 ? sSensor.interval : 60) * 1000UL;
+      if (millis() - this->apiRequestLastPollTime[sensorId] < intervalMs) {
+        continue;
+      }
+
+      this->apiRequestLastPollTime[sensorId] = millis();
+
+      String host, path;
+      uint16_t port = 80;
+      if (!SensorsTask::parseUrl(sSensor.url, host, path, port)) {
+        Log.swarningln(FPSTR(L_SENSORS_API), F("Sensor #%hhu '%s', invalid url: %s"), sensorId, sSensor.name, sSensor.url);
+        continue;
+      }
+
+      WiFiClient client;
+      client.setTimeout(5000);
+
+      if (!client.connect(host.c_str(), port)) {
+        if (rSensor.connected) {
+          Sensors::setConnectionStatusById(sensorId, false, false);
+        }
+
+        Log.swarningln(FPSTR(L_SENSORS_API), F("Sensor #%hhu '%s', connection failed: %s:%u"), sensorId, sSensor.name, host.c_str(), port);
+        continue;
+      }
+
+      client.printf(F("GET %s HTTP/1.1\r\nHost: %s\r\nConnection: close\r\n\r\n"), path.c_str(), host.c_str());
+      client.flush();
+
+      const String& response = client.readString();
+      client.stop();
+
+      int bodyIdx = response.indexOf("\r\n\r\n");
+      const String& payload = bodyIdx >= 0 ? response.substring(bodyIdx + 4) : response;
+
+      JsonDocument doc;
+      DeserializationError dErr = deserializeJson(doc, payload);
+
+      if (dErr == DeserializationError::Ok && !doc.isNull()) {
+        float value = 0.0f;
+
+        if (SensorsTask::getValueByJsonPath(doc, sSensor.jsonPath, value)) {
+          Log.straceln(
+            FPSTR(L_SENSORS_API), F("Sensor #%hhu '%s', value via API request: %.2f"),
+            sensorId, sSensor.name, value
+          );
+
+          Sensors::setValueById(sensorId, value, Sensors::ValueType::PRIMARY, true, true);
+
+        } else {
+          Log.swarningln(
+            FPSTR(L_SENSORS_API), F("Sensor #%hhu '%s', failed to extract value (path: %s)"),
+            sensorId, sSensor.name, sSensor.jsonPath
+          );
+        }
+
+      } else {
+        if (rSensor.connected) {
+          Sensors::setConnectionStatusById(sensorId, false, false);
+        }
+
+        Log.swarningln(FPSTR(L_SENSORS_API), F("Sensor #%hhu '%s', invalid response"), sensorId, sSensor.name);
+      }
     }
   }
 
@@ -1006,7 +1186,7 @@ protected:
         Sensors::setConnectionStatusById(sensorId, false, false);
 
       } else if (rSensor.connected) {
-        if (sSensor.type == Sensors::Type::MANUAL || sSensor.type == Sensors::Type::BLUETOOTH || sSensor.type == Sensors::Type::API_ENDPOINT) {
+        if (sSensor.type == Sensors::Type::MANUAL || sSensor.type == Sensors::Type::BLUETOOTH || sSensor.type == Sensors::Type::API_ENDPOINT || sSensor.type == Sensors::Type::API_REQUEST) {
           if ((millis() - rSensor.activityTime) > this->wirelessDisconnectTimeout) {
             Sensors::setConnectionStatusById(sensorId, false, false);
           }

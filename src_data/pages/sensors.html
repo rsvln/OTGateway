@@ -119,6 +119,7 @@
                       <option value="51" data-i18n>sensors.types.dallasTemp</option>
                       <option value="52" data-i18n>sensors.types.bluetooth</option>
                       <option value="53" data-i18n>sensors.types.apiEndpoint</option>
+                      <option value="54" data-i18n>sensors.types.apiRequest</option>
                       <option value="253" data-i18n>sensors.types.heatSetpointTemp</option>
                       <option value="254" data-i18n>sensors.types.manual</option>
                       <option value="255" data-i18n>sensors.types.notConfigured</option>
@@ -137,6 +138,24 @@
                   <span data-i18n>sensors.address.title</span>
                   <input type="text" name="address">
                   <small data-i18n>sensors.address.note</small>
+                </label>
+              </div>
+
+              <div class="api-request hidden">
+                <label>
+                  <span data-i18n>sensors.url</span>
+                  <input type="text" name="url" maxlength="128">
+                </label>
+
+                <label>
+                  <span data-i18n>sensors.jsonPath.title</span>
+                  <input type="text" name="jsonPath" maxlength="64">
+                  <small data-i18n>sensors.jsonPath.note</small>
+                </label>
+
+                <label>
+                  <span data-i18n>sensors.interval</span>
+                  <input type="number" inputmode="numeric" name="interval" min="5" max="3600" step="1" value="60">
                 </label>
               </div>
 
@@ -238,6 +257,9 @@
               setSelectValue("[name='type']", data.type, sensorForm);
               setInputValue("[name='gpio']", data.gpio < 255 ? data.gpio : "", {}, sensorForm);
               setInputValue("[name='address']", data.address, {}, sensorForm);
+              setInputValue("[name='url']", data.url, {}, sensorForm);
+              setInputValue("[name='jsonPath']", data.jsonPath, {}, sensorForm);
+              setInputValue("[name='interval']", data.interval, {}, sensorForm);
               setInputValue("[name='offset']", data.offset, {}, sensorForm);
               setInputValue("[name='factor']", data.factor, {}, sensorForm);
               setCheckboxValue("[name='filtering']", data.filtering, sensorForm);
@@ -300,6 +322,16 @@
                   address.removeAttribute("pattern");
                   break;
               }
+
+              switch(parseInt(event.target.value)) {
+                // api request
+                case 54:
+                  show(".api-request", sensorForm);
+                  break;
+
+                default:
+                  hide(".api-request", sensorForm);
+              }
             });
 
             sensorNode.addEventListener("click", async (event) => {
@@ -326,7 +358,7 @@
               }
             });
             
-            setupForm(`.sensor[data-id='${sensorId}'] form`, fillData, ['address']);
+            setupForm(`.sensor[data-id='${sensorId}'] form`, fillData, ['address', 'url', 'jsonPath']);
           }
 
         } catch (error) {

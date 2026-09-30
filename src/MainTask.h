@@ -149,6 +149,7 @@ protected:
 
       Sensors::setConnectionStatusByType(Sensors::Type::MANUAL, false, false);
       Sensors::setConnectionStatusByType(Sensors::Type::API_ENDPOINT, false, false);
+      Sensors::setConnectionStatusByType(Sensors::Type::API_REQUEST, false, false);
     }
 
     this->yield();

@@ -228,6 +228,7 @@
         "dallasTemp": "DALLAS-sensor",
         "bluetooth": "BLE-sensor",
         "apiEndpoint": "API endpoint",
+        "apiRequest": "API request",
         "heatSetpointTemp": "Verwarming, insteltemperatuur",
         "manual": "Handmatig via MQTT/API",
         "notConfigured": "Niet geconfigureerd"
@@ -237,6 +238,12 @@
         "title": "Sensoradres",
         "note": "Laat leeg voor automatische detectie van DALLAS-sensoren. Voor BLE-apparaten is een MAC-adres vereist."
       },
+      "url": "Verzoek-URL",
+      "jsonPath": {
+        "title": "JSON-pad",
+        "note": "Door punten gescheiden sleutels, bijv. StatusSNS.SHT4X.Temperature. Laat leeg als het antwoord een gewoon getal is."
+      },
+      "interval": "Polling-interval (seconden)",
       "correction": {
         "desc": "Correctie van waarden",
         "offset": "Compensatie (offset)",
