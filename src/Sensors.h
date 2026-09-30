@@ -39,6 +39,7 @@ public:
     NTC_10K_TEMP            = 50,
     DALLAS_TEMP             = 51,
     BLUETOOTH               = 52,
+    API_REQUEST             = 54,
 
     HEATING_SETPOINT_TEMP   = 253,
     MANUAL                  = 254,
@@ -86,6 +87,9 @@ public:
     float factor = 1.0f;
     bool filtering = false;
     float filteringFactor = 0.15f;
+    char url[129] = {0};
+    char jsonPath[65] = {0};
+    unsigned short interval = 60;
   } Settings;
 
   typedef struct {

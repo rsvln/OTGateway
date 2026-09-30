@@ -248,6 +248,7 @@
         "ntcTemp": "NTC 传感器",
         "dallasTemp": "DALLAS 传感器",
         "bluetooth": "BLE 传感器",
+        "apiRequest": "API request",
         "heatSetpointTemp": "Heating, setpoint temp",
         "manual": "通过 MQTT/API 手动配置",
         "notConfigured": "未配置"
@@ -257,6 +258,12 @@
         "title": "传感器地址",
         "note": "如需自动检测DALLAS传感器，请保持默认设置；如需连接BLE设备，则需提供MAC地址"
       },
+      "url": "请求 URL",
+      "jsonPath": {
+        "title": "JSON 路径",
+        "note": "以点分隔的键，例如 StatusSNS.SHT4X.Temperature。若响应为纯数字，请留空。"
+      },
+      "interval": "轮询间隔（秒）",
       "correction": {
         "desc": "数值校正",
         "offset": "补偿值（偏移量）",

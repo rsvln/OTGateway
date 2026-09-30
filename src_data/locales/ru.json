@@ -248,6 +248,7 @@
         "ntcTemp": "NTC датчик",
         "dallasTemp": "DALLAS датчик",
         "bluetooth": "BLE датчик",
+        "apiRequest": "API request",
         "heatSetpointTemp": "Отопление, температура уставки",
         "manual": "Вручную через MQTT/API",
         "notConfigured": "Не сконфигурировано"
@@ -255,8 +256,14 @@
       "gpio": "GPIO датчика",
       "address": {
         "title": "Адрес датчика",
-        "note": "Для DALLAS датчиков оставьте по умолчанию для автоопределения, для BLE устройств необходимо указать MAC адрес"
+        "note": "Для автопоиска датчика DALLAS оставьте пустым, для BLE нужен MAC-адрес"
       },
+      "url": "URL запроса",
+      "jsonPath": {
+        "title": "JSON-путь",
+        "note": "Ключи через точку, напр. StatusSNS.SHT4X.Temperature. Оставьте пустым, если ответ — просто число."
+      },
+      "interval": "Интервал опроса (секунды)",
       "correction": {
         "desc": "Коррекция показаний",
         "offset": "Компенсация (смещение)",

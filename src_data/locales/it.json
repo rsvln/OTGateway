@@ -248,6 +248,7 @@
         "ntcTemp": "Sensore NTC",
         "dallasTemp": "Sensore DALLAS",
         "bluetooth": "Sensore BLE",
+        "apiRequest": "API request",
         "heatSetpointTemp": "Riscaldamento, temp impostata",
         "manual": "Manuale via MQTT/API",
         "notConfigured": "Non configurato"
@@ -257,6 +258,12 @@
         "title": "Indirizzo sensore",
         "note": "Per l'autoriconoscimento del sensore DALLAS lasciare quello di default, per sensore BLE richiede indirizzo MAC"
       },
+      "url": "URL richiesta",
+      "jsonPath": {
+        "title": "Percorso JSON",
+        "note": "Chiavi separate da punto, es. StatusSNS.SHT4X.Temperature. Lasciare vuoto se la risposta è un semplice numero."
+      },
+      "interval": "Intervallo di polling (secondi)",
       "correction": {
         "desc": "Correzione del valore",
         "offset": "Compensazione (offset)",
