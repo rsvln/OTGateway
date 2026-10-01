@@ -573,7 +573,10 @@ protected:
       }
 
       WiFiClient client;
-      client.setTimeout(5000);
+      #ifdef ARDUINO_ARCH_ESP32
+      client.setConnectionTimeout(3000);
+      #endif
+      client.setTimeout(3000);
 
       if (!client.connect(host.c_str(), port)) {
         if (rSensor.connected) {
