@@ -72,8 +72,15 @@ public:
   }
 
 protected:
-  const unsigned int wiredDisconnectTimeout = 180000u;
-  const unsigned int wirelessDisconnectTimeout = 600000u;
+  // both are configurable (seconds in settings), see Settings::sensors
+  inline unsigned int getWiredDisconnectTimeout() {
+    return (unsigned int) settings.sensors.wiredTimeout * 1000u;
+  }
+
+  inline unsigned int getWirelessDisconnectTimeout() {
+    return (unsigned int) settings.sensors.wirelessTimeout * 1000u;
+  }
+
   const unsigned short dallasSearchInterval = 60000;
   const unsigned short dallasPollingInterval = 10000;
   const unsigned short globalPollingInterval = 15000;
@@ -155,14 +162,26 @@ protected:
   }
 
   void updateMasterValues() {
-    vars.master.heating.outdoorTemp = Sensors::getMeanValueByPurpose(Sensors::Purpose::OUTDOOR_TEMP, Sensors::ValueType::PRIMARY);
-    vars.master.heating.indoorTemp = Sensors::getMeanValueByPurpose(Sensors::Purpose::INDOOR_TEMP, Sensors::ValueType::PRIMARY);
+    // Outdoor/indoor temps drive the regulator, so a dead sensor must not drop them to zero:
+    // keep the last known value and let the emergency logic decide what to do.
+    updateMasterTemp(Sensors::Purpose::OUTDOOR_TEMP, vars.master.heating.outdoorTemp);
+    updateMasterTemp(Sensors::Purpose::INDOOR_TEMP, vars.master.heating.indoorTemp);
 
     vars.master.heating.currentTemp = Sensors::getMeanValueByPurpose(Sensors::Purpose::HEATING_TEMP, Sensors::ValueType::PRIMARY);
     vars.master.heating.returnTemp = Sensors::getMeanValueByPurpose(Sensors::Purpose::HEATING_RETURN_TEMP, Sensors::ValueType::PRIMARY);
 
     vars.master.dhw.currentTemp = Sensors::getMeanValueByPurpose(Sensors::Purpose::DHW_TEMP, Sensors::ValueType::PRIMARY);
     vars.master.dhw.returnTemp = Sensors::getMeanValueByPurpose(Sensors::Purpose::DHW_RETURN_TEMP, Sensors::ValueType::PRIMARY);
+  }
+
+  void updateMasterTemp(const Sensors::Purpose purpose, float& dst) {
+    if (Sensors::existsConnectedSensorsByPurpose(purpose)) {
+      dst = Sensors::getMeanValueByPurpose(purpose, Sensors::ValueType::PRIMARY);
+
+    } else if (!Sensors::getAmountByPurpose(purpose, true)) {
+      // no enabled sensors for this purpose at all: nothing to hold
+      dst = 0.0f;
+    }
   }
 
   void makeDallasInstances() {
@@ -1190,11 +1209,11 @@ protected:
 
       } else if (rSensor.connected) {
         if (sSensor.type == Sensors::Type::MANUAL || sSensor.type == Sensors::Type::BLUETOOTH || sSensor.type == Sensors::Type::API_ENDPOINT || sSensor.type == Sensors::Type::API_REQUEST) {
-          if ((millis() - rSensor.activityTime) > this->wirelessDisconnectTimeout) {
+          if ((millis() - rSensor.activityTime) > this->getWirelessDisconnectTimeout()) {
             Sensors::setConnectionStatusById(sensorId, false, false);
           }
 
-        } else if ((millis() - rSensor.activityTime) > this->wiredDisconnectTimeout) {
+        } else if ((millis() - rSensor.activityTime) > this->getWiredDisconnectTimeout()) {
           Sensors::setConnectionStatusById(sensorId, false, false);
         }
       }

@@ -364,6 +364,22 @@
                 </label>
               </div>
 
+              <hr />
+
+              <div class="grid">
+                <label>
+                  <span data-i18n>settings.sensors.wiredTimeout.title</span>
+                  <input type="number" inputmode="numeric" name="sensors[wiredTimeout]" min="30" max="3600" step="1" required>
+                  <small data-i18n>settings.sensors.wiredTimeout.note</small>
+                </label>
+
+                <label>
+                  <span data-i18n>settings.sensors.wirelessTimeout.title</span>
+                  <input type="number" inputmode="numeric" name="sensors[wirelessTimeout]" min="30" max="3600" step="1" required>
+                  <small data-i18n>settings.sensors.wirelessTimeout.note</small>
+                </label>
+              </div>
+
               <button type="submit" data-i18n>button.save</button>
             </form>
           </div>
@@ -1230,6 +1246,10 @@
             });
           }
           setInputValue("[name='emergency[tresholdTime]']", data.emergency.tresholdTime);
+          if (data.sensors) {
+            setInputValue("[name='sensors[wiredTimeout]']", data.sensors.wiredTimeout);
+            setInputValue("[name='sensors[wirelessTimeout]']", data.sensors.wirelessTimeout);
+          }
           setBusy('#emergency-settings-busy', '#emergency-settings', false);
 
           // Equitherm

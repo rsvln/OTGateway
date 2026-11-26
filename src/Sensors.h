@@ -153,6 +153,21 @@ public:
     return amount;
   }
 
+  static uint8_t getAmountByPurpose(Purpose purpose, bool onlyEnabled = false) {
+    if (settings == nullptr) {
+      return 0;
+    }
+
+    uint8_t amount = 0;
+    for (uint8_t id = 0; id <= getMaxSensorId(); id++) {
+      if (settings[id].purpose == purpose && (!onlyEnabled || settings[id].enabled)) {
+        amount++;
+      }
+    }
+
+    return amount;
+  }
+
   static int16_t getIdByName(const char* name) {
     if (settings == nullptr) {
       return -1;

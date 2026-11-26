@@ -356,6 +356,17 @@
         },
         "turboFactor": "Turbomodus coëff."
       },
+      "sensors": {
+        "wiredTimeout": {
+          "title": "Wired sensor timeout, sec.",
+          "note": "After this silence a wired sensor (Dallas, NTC) is treated as disconnected."
+        },
+        "wirelessTimeout": {
+          "title": "Wireless sensor timeout, sec.",
+          "note": "Same for BLE, manual and API sensors. Until then the last known value is kept."
+        }
+      },
+
       "emergency": {
         "desc": "Noodmodus wordt automatisch geactiveerd wanneer «PID» of «Equitherm» het instelpunt van de warmtedrager niet kan berekenen:<br />- als «Equitherm» is ingeschakeld en de buitentemperatuursensor is losgekoppeld;<br />- als «PID» of OT-optie <i>«Natuurlijke verwarmingsregeling»</i> is ingeschakeld en de binnentemperatuursensor is losgekoppeld.<br /><b>Let op:</b> Bij een netwerk- of MQTT-storing krijgen sensoren van het type <i>«Handmatig via MQTT/API»</i> de status ONVERBONDEN.",
         "target": {

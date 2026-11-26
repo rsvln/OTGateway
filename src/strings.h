@@ -222,4 +222,6 @@ const char S_USER[]                                 PROGMEM = "user";
 const char S_VALUE[]                                PROGMEM = "value";
 const char S_URL[]                                  PROGMEM = "url";
 const char S_JSON_PATH[]                            PROGMEM = "jsonPath";
+const char S_WIRED_TIMEOUT[]                        PROGMEM = "wiredTimeout";
+const char S_WIRELESS_TIMEOUT[]                     PROGMEM = "wirelessTimeout";
 const char S_VERSION[]                              PROGMEM = "version";

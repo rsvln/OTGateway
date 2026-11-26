@@ -384,6 +384,17 @@
         "turboFactor": "Turbo 模式系数"
       },
 
+      "sensors": {
+        "wiredTimeout": {
+          "title": "Wired sensor timeout, sec.",
+          "note": "After this silence a wired sensor (Dallas, NTC) is treated as disconnected."
+        },
+        "wirelessTimeout": {
+          "title": "Wireless sensor timeout, sec.",
+          "note": "Same for BLE, manual and API sensors. Until then the last known value is kept."
+        }
+      },
+
       "emergency": {
         "desc": "紧急模式会在以下情况自动激活（当PID或气候补偿无法计算热媒设定值时）：<br />启用气候补偿但室外温度传感器断开连接；<br />启用PID或 OpenTherm 选项中启用<i>原生供暖控制</i>但室内温度传感器断开连接。<br /><b>注意：</b> 网络故障或MQTT 服务器连接故障时，类型为<i>通过MQTT/API手动控制<i>的传感器将显示为断开连接状态。",
         

@@ -486,6 +486,10 @@ void settingsToJson(const Settings& src, JsonVariant dst, bool safe = false) {
     auto emergency = dst[FPSTR(S_EMERGENCY)].to<JsonObject>();
     emergency[FPSTR(S_TARGET)] = roundf(src.emergency.target, 2);
     emergency[FPSTR(S_TRESHOLD_TIME)] = src.emergency.tresholdTime;
+
+    auto sensors = dst[FPSTR(S_SENSORS)].to<JsonObject>();
+    sensors[FPSTR(S_WIRED_TIMEOUT)] = src.sensors.wiredTimeout;
+    sensors[FPSTR(S_WIRELESS_TIMEOUT)] = src.sensors.wirelessTimeout;
   }
   
   auto heating = dst[FPSTR(S_HEATING)].to<JsonObject>();
@@ -1118,6 +1122,26 @@ bool jsonToSettings(const JsonVariantConst src, Settings& dst, bool safe = false
 
       if (value >= 60 && value <= 1800 && value != dst.emergency.tresholdTime) {
         dst.emergency.tresholdTime = value;
+        changed = true;
+      }
+    }
+
+
+    // sensors: disconnect timeouts
+    if (!src[FPSTR(S_SENSORS)][FPSTR(S_WIRED_TIMEOUT)].isNull()) {
+      unsigned short value = src[FPSTR(S_SENSORS)][FPSTR(S_WIRED_TIMEOUT)].as<unsigned short>();
+
+      if (value >= 30 && value <= 3600 && value != dst.sensors.wiredTimeout) {
+        dst.sensors.wiredTimeout = value;
+        changed = true;
+      }
+    }
+
+    if (!src[FPSTR(S_SENSORS)][FPSTR(S_WIRELESS_TIMEOUT)].isNull()) {
+      unsigned short value = src[FPSTR(S_SENSORS)][FPSTR(S_WIRELESS_TIMEOUT)].as<unsigned short>();
+
+      if (value >= 30 && value <= 3600 && value != dst.sensors.wirelessTimeout) {
+        dst.sensors.wirelessTimeout = value;
         changed = true;
       }
     }

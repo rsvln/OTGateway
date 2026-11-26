@@ -101,6 +101,12 @@ struct Settings {
   } emergency;
 
   struct {
+    // seconds of silence after which a sensor is treated as disconnected
+    unsigned short wiredTimeout = 180;
+    unsigned short wirelessTimeout = 600;
+  } sensors;
+
+  struct {
     bool enabled = true;
     bool turbo = false;
     float target = DEFAULT_HEATING_TARGET_TEMP;
